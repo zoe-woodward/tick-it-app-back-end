@@ -6,9 +6,9 @@ const Task = require('../models/task');
 
 router.post('/', async (req, res) => {
     try {
-      // Create a new pet with the data from req.body
+    
       const createdTask = await Task.create(req.body);
-      res.status(201).json(createdTask); // 201 Created
+      res.status(201).json(createdTask); 
     } catch (err) {
         res.status(500).json({ err: err.message });
       }
