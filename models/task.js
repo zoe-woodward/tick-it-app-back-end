@@ -1,8 +1,21 @@
 const mongoose = require('mongoose');
-const Category = require('./category'); 
+
+
+const categorySchema = new mongoose.Schema({
+  category: {
+    type: String,
+    required: true,
+    enum: ['Personal', 'Work'],
+  },
+});
 
 const taskSchema = new mongoose.Schema({
-  task: {
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', 
+    required: true,
+  },
+  name: {
     type: String,
     required: true,
   },
@@ -11,14 +24,11 @@ const taskSchema = new mongoose.Schema({
     default: false,
   },
   dueDate: {
-    type: String,
+    type: Date,
     required: true,
   },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    required: false,
-  },
+
+  category: [categorySchema], 
 });
 
 const Task = mongoose.model('Task', taskSchema);

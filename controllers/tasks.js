@@ -1,81 +1,104 @@
 const express = require('express');
+const verifyToken = require('../middleware/verify-token.js');
+const Task = require('../models/task.js');
 const router = express.Router();
 
-const Task = require('../models/task');
+// ========== Public Routes =========
 
+// ========= Protected Routes =========
+
+router.use(verifyToken);
 
 router.post('/', async (req, res) => {
-    try {
-    
-      const createdTask = await Task.create(req.body);
-      res.status(201).json(createdTask); 
-    } catch (err) {
-        res.status(500).json({ err: err.message });
-      }
-  });
-  
-  
-  
-router.get('/', async (req, res) => {
-    try {
-      const foundTasks = await Task.find();
-      res.status(200).json(foundTasks); 
-    } catch (err) {
-        res.status(500).json({ err: err.message }); 
-      }
-  });
-  
-  router.get('/:taskId', async (req, res) => {
-    try {
-        const foundTask = await Task.findById(req.params.taskId);
-      if (!foundTask) {
-      res.status(404);
-      throw new Error('Task not found.');
-    }
-    res.status(200).json(foundTask);
+  try {
+    const { name, dueDate, category } = req.body;
+    const userId = req.user._id; 
+
+    const newTask = new Task({
+      name,
+      dueDate,
+      category,
+      user: userId, 
+    });
+
+    await newTask.save();
+    res.status(201).json(newTask); 
   } catch (err) {
-    if (res.statusCode === 404) {
-        res.json({ err: err.message });
-    } else {
-        res.status(500).json({ err: err.message });
-      }
-    }
-  });
-
-  
-  router.delete('/:id', async (req, res) => {
-    try {
-        const taskId = req.params.id;
-        const deletedTask = await Task.findByIdAndDelete(taskId);
-
-        if (!deletedTask) {
-            return res.status(404).json({ error: 'Task not found' });
-        }
-        res.status(200).json({ task: deletedTask });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.put('/:taskId', async (req, res) => {
-   try {
-    const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, req.body, {
-      new: true,
-    });
-    if (!updatedTask) {
-      res.status(404);
-      throw new Error('Task not found.');
-    }
-    res.status(200).json(updatedTask);
+router.get('/', async (req, res) => {
+  try {
+    const tasks = await Task.find({ user: req.user._id }); 
+    res.status(200).json(tasks); 
   } catch (err) {
-    if (res.statusCode === 404) {
-        res.json({ err: err.message });
-      } else {
-        res.status(500).json({ err: err.message });
-      }
-    }
-  });
-  
+    res.status(500).json({ error: err.message });
+  }
+});
 
-  
-  module.exports = router;
+
+router.get('/:taskId', async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    if (task.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    res.status(200).json(task); 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.put('/:taskId', async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    if (task.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    task.name = req.body.name || task.name;
+    task.dueDate = req.body.dueDate || task.dueDate;
+    task.category = req.body.category || task.category;
+
+    await task.save();
+    res.status(200).json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.delete('/:taskId',  async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    if (task.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    await task.remove(); 
+    res.status(200).json({ message: 'Task deleted successfully' }); 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+module.exports = router;
+
