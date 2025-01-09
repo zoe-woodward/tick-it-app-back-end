@@ -5,12 +5,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 
-
-
-const testJWTRouter = require('./controllers/test-jwt.js');
 const usersRouter = require('./controllers/users.js');
 const profilesRouter = require('./controllers/profiles.js');
-const taskRouter = require('./controllers/tasks.js');
+const tasksRouter = require('./controllers/tasks.js');
 
 const app = express();
 
@@ -27,10 +24,9 @@ app.use(express.json());
 
 
 
-app.use('/test-jwt', testJWTRouter);
 app.use('/users', usersRouter);        
 app.use('/profiles', profilesRouter);   
-app.use('/tasks', taskRouter);          
+app.use('/tasks', tasksRouter);          
 
 
 

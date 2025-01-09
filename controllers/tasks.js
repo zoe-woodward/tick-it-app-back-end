@@ -11,13 +11,14 @@ router.use(verifyToken);
 
 router.post('/', async (req, res) => {
   try {
-    const { name, dueDate, category } = req.body;
+    const { name, dueDate, category, isCompleted } = req.body;
     const userId = req.user._id; 
 
     const newTask = new Task({
       name,
       dueDate,
       category,
+      isCompleted,
       user: userId, 
     });
 
@@ -41,14 +42,6 @@ router.get('/', async (req, res) => {
 router.get('/:taskId', async (req, res) => {
   try {
     const task = await Task.findById(req.params.taskId);
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
-
-    if (task.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     res.status(200).json(task); 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -60,17 +53,14 @@ router.put('/:taskId', async (req, res) => {
   try {
     const task = await Task.findById(req.params.taskId);
 
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
-
     if (task.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorised' });
     }
 
     task.name = req.body.name || task.name;
     task.dueDate = req.body.dueDate || task.dueDate;
     task.category = req.body.category || task.category;
+    task.isCompleted = req.body.isCompleted || task.isCompleted;
 
     await task.save();
     res.status(200).json(task);
@@ -84,19 +74,17 @@ router.delete('/:taskId',  async (req, res) => {
   try {
     const task = await Task.findById(req.params.taskId);
 
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
     if (task.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorised' });
     }
 
-    await task.remove(); 
-    res.status(200).json({ message: 'Task deleted successfully' }); 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const deletedTask = await Task.findByIdAndDelete(req.params.taskId);
+    res.status(200).json(deletedTask);
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
+
 
 
 
