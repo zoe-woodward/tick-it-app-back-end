@@ -8,6 +8,7 @@ dotenv.config();
 const usersRouter = require('./controllers/users.js');
 const profilesRouter = require('./controllers/profiles.js');
 const tasksRouter = require('./controllers/tasks.js');
+const categoriesRouter = require('./controllers/categories.js');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use('/users', usersRouter);        
 app.use('/profiles', profilesRouter);   
 app.use('/tasks', tasksRouter);          
+app.use('/categories', categoriesRouter);      
 
 
 
