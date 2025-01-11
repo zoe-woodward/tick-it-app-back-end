@@ -41,7 +41,8 @@ router.get('/', async (req, res) => {
 
 router.get('/:taskId', async (req, res) => {
   try {
-    const task = await Task.findById(req.params.taskId);
+    const task = await Task.findById(req.params.taskId).populate("category");
+    console.log(task);
     res.status(200).json(task); 
   } catch (err) {
     res.status(500).json({ error: err.message });

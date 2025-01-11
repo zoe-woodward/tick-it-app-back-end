@@ -22,7 +22,7 @@ const taskSchema = new mongoose.Schema({
     required: true,
   },
   category: {
-    type: mongoose.Schema.Types.String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Category', 
     required: true,
   }
